@@ -142,7 +142,7 @@ static const char *const pstring[] = {
 *************************************************/
 
 PCRE_DATA_SCOPE size_t
-regerror(int errcode, const regex_t *preg, char *errbuf, size_t errbuf_size)
+fiftyone_degrees_regerror(int errcode, const regex_t *preg, char *errbuf, size_t errbuf_size)
 {
 const char *message, *addmessage;
 size_t length, addlength;
@@ -177,7 +177,7 @@ return length + addlength;
 *************************************************/
 
 PCRE_DATA_SCOPE void
-regfree(regex_t *preg)
+fiftyone_degrees_regfree(regex_t *preg)
 {
 (pcre_free)(preg->re_pcre);
 }
@@ -200,7 +200,7 @@ Returns:      0 on success
 */
 
 PCRE_DATA_SCOPE int
-regcomp(regex_t *preg, const char *pattern, int cflags)
+fiftyone_degrees_regcomp(regex_t *preg, const char *pattern, int cflags)
 {
 const char *errorptr;
 int erroffset;
@@ -242,7 +242,7 @@ be set. When this is the case, the nmatch and pmatch arguments are ignored, and
 the only result is yes/no/error. */
 
 PCRE_DATA_SCOPE int
-regexec(const regex_t *preg, const char *string, size_t nmatch,
+fiftyone_degrees_regexec(const regex_t *preg, const char *string, size_t nmatch,
   regmatch_t pmatch[], int eflags)
 {
 int rc;

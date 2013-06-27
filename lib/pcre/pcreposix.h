@@ -134,11 +134,11 @@ when building PCRE. */
 
 /* The functions */
 
-PCRE_DATA_SCOPE int regcomp(regex_t *, const char *, int);
-PCRE_DATA_SCOPE int regexec(const regex_t *, const char *, size_t,
+PCRE_DATA_SCOPE int fiftyone_degrees_regcomp(regex_t *, const char *, int);
+PCRE_DATA_SCOPE int fiftyone_degrees_regexec(const regex_t *, const char *, size_t,
                   regmatch_t *, int);
-PCRE_DATA_SCOPE size_t regerror(int, const regex_t *, char *, size_t);
-PCRE_DATA_SCOPE void regfree(regex_t *);
+PCRE_DATA_SCOPE size_t fiftyone_degrees_regerror(int, const regex_t *, char *, size_t);
+PCRE_DATA_SCOPE void fiftyone_degrees_regfree(regex_t *);
 
 #ifdef __cplusplus
 }   /* extern "C" */
