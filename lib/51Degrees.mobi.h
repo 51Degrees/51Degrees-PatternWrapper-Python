@@ -36,13 +36,13 @@
 #define MAXBUFFER 1024
 
 /*The maximum number of devices contained in the data set*/
-#define MAXDEVICES 63555
+#define MAXDEVICES 101187
 
 /*The maxium number of segments that will be used with a handler*/
-#define MAXSEGMENTS 11
+#define MAXSEGMENTS 25
 
 /*The maximum number of regex matches per segment*/
-#define MAXSEGMENTCHECK 18
+#define MAXSEGMENTCHECK 34
 
 /*The number of profiles for each device*/
 #define PROFILES 4
