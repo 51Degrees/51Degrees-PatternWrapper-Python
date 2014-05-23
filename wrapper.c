@@ -5,9 +5,9 @@
  */
 
 #include <Python.h>
-#include "lib/51Degrees.mobi.h"
+#include "lib/pattern/51Degrees.h"
 
-#define OUTPUT_BUFFER_LENGTH 50000
+#define MAXBUFFER 1024
 
 struct module_state {
     PyObject *error;
@@ -20,69 +20,78 @@ struct module_state {
 static struct module_state _state;
 #endif
 
+static DataSet dataSet;
+static Workset *ws;
+
 static PyObject *py_init(PyObject *self, PyObject *args)
 {
+	// Data file path
+	const char *filePath;
     // Input property names.
     const char *properties;
 
     // Parse input arguments: property names (string).
-    if (!PyArg_ParseTuple(args, "s", &properties)) {
+    if (!PyArg_ParseTuple(args, "ss", &filePath, &properties)) {
         return NULL;
     }
+	if (strlen(properties) == 0) {
+		properties = NULL;
+	}
+	struct stat   buffer;   
+  	if (stat (filePath, &buffer) == 0) {
+		// Init matcher.
+		if (initWithPropertyString(filePath, &dataSet, properties) < 0) {
+		    PyErr_SetString(PyExc_RuntimeError, "Failed to initialize C wrapper.");
+		    return NULL;
+		}
+		ws = createWorkset(&dataSet);
 
-    // Init matcher.
-    if (init(properties) != 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Failed to initialize C wrapper.");
-        return NULL;
-    }
-
-    // Done!
-    Py_RETURN_NONE;
+		// Done!
+		Py_RETURN_NONE;
+	}
+	else {
+		PyErr_SetString(PyExc_IOError, "Data file not found.");
+		return NULL;
+	}
 }
 
 static PyObject *py_match(PyObject *self, PyObject *args)
 {
-    // Input workset.
-    Workset *ws = NULL;
+    if (ws != NULL) {
+		// Input user agent.
+		const char *userAgent;
 
-    // Input user agent.
-    const char *userAgent;
+		int OUTPUT_BUFFER_LENGTH = ws->dataSet->header.csvBufferLength;
+		// Output CSV buffer.
+		char output[OUTPUT_BUFFER_LENGTH];
 
-    // Detected device.
-    const Device *device;
+		// Parse input arguments: user agent (string).
+		if (!PyArg_ParseTuple(args, "s", &userAgent)) {
+		    return NULL;
+		}
 
-    // Output CSV buffer.
-    char output[OUTPUT_BUFFER_LENGTH];
+		// Check user agent string length.
+		if (strlen(userAgent) < MAXBUFFER) {
+		    // Match user agent.
+		    match(ws, userAgent);
 
-    // Parse input arguments: user agent (string).
-    if (!PyArg_ParseTuple(args, "s", &userAgent)) {
-        return NULL;
-    }
-
-    // Check user agent string length.
-    if (strlen(userAgent) < MAXBUFFER) {
-        // Match user agent.
-        ws = createWorkset();
-        strcpy(ws->input, userAgent);
-        device = getDevice(ws);
-        freeWorkset(ws);
-
-        // Fetch properties.
-        if (device != NULL) {
-            if (processDeviceCSV(device, output, OUTPUT_BUFFER_LENGTH) < 0) {
-                PyErr_SetString(PyExc_RuntimeError, "Failed to process device CSV.");
-                return NULL;
-            } else {
-                return  Py_BuildValue("s", output);
-            }
-        }
-        else {
-            Py_RETURN_NONE;
-        }
-    } else {
-        PyErr_SetString(PyExc_RuntimeError, "User agent string too long.");
-        return NULL;
-    }
+		    // Fetch properties.
+		    if (processDeviceCSV(ws, output, OUTPUT_BUFFER_LENGTH) < 0) {
+		        PyErr_SetString(PyExc_RuntimeError, "Failed to process device CSV.");
+		        return NULL;
+		    } else {
+		        return  Py_BuildValue("s", output);
+		    }
+		    
+		} else {
+		    PyErr_SetString(PyExc_RuntimeError, "User agent string too long.");
+		    return NULL;
+		}
+	}
+	else {
+		PyErr_SetString(PyExc_RuntimeError, "Init must be called before match.");
+		return NULL;
+	}
 }
 
 static PyMethodDef wrapperMethods[] =
@@ -93,28 +102,29 @@ static PyMethodDef wrapperMethods[] =
 };
 
 #if PY_MAJOR_VERSION >= 3
-static int _fiftyone_degrees_mobile_detector_lite_pattern_wrapper_traverse(PyObject *m, visitproc visit, void *arg)
+static int _fiftyone_degrees_mobile_detector_v3_pattern_wrapper_traverse(PyObject *m, visitproc visit, void *arg)
 {
     Py_VISIT(GETSTATE(m)->error);
     return 0;
 }
 
-static int _fiftyone_degrees_mobile_detector_lite_pattern_wrapper_clear(PyObject *m)
+static int _fiftyone_degrees_mobile_detector_v3_pattern_wrapper_clear(PyObject *m)
 {
     Py_CLEAR(GETSTATE(m)->error);
+	// add workset destroy
     return 0;
 }
 
 static struct PyModuleDef wrapperDefinition =
 {
         PyModuleDef_HEAD_INIT,
-        "_fiftyone_degrees_mobile_detector_lite_pattern_wrapper",
+        "_fiftyone_degrees_mobile_detector_v3_wrapper",
         NULL,
         sizeof(struct module_state),
         wrapperMethods,
         NULL,
-        _fiftyone_degrees_mobile_detector_lite_pattern_wrapper_traverse,
-        _fiftyone_degrees_mobile_detector_lite_pattern_wrapper_clear,
+        _fiftyone_degrees_mobile_detector_v3_pattern_wrapper_traverse,
+        _fiftyone_degrees_mobile_detector_v3_pattern_wrapper_clear,
         NULL
 };
 
@@ -124,15 +134,15 @@ static struct PyModuleDef wrapperDefinition =
 #endif
 
 #if PY_MAJOR_VERSION >= 3
-PyObject *PyInit__fiftyone_degrees_mobile_detector_lite_pattern_wrapper(void)
+PyObject *PyInit__fiftyone_degrees_mobile_detector_v3_wrapper(void)
 #else
-void init_fiftyone_degrees_mobile_detector_lite_pattern_wrapper(void)
+void init_fiftyone_degrees_mobile_detector_v3_wrapper(void)
 #endif
 {
 #if PY_MAJOR_VERSION >= 3
     PyObject *module = PyModule_Create(&wrapperDefinition);
 #else
-    PyObject *module = Py_InitModule("_fiftyone_degrees_mobile_detector_lite_pattern_wrapper", wrapperMethods);
+    PyObject *module = Py_InitModule("_fiftyone_degrees_mobile_detector_v3_wrapper", wrapperMethods);
 #endif
 
     if (module == NULL) {
@@ -140,7 +150,7 @@ void init_fiftyone_degrees_mobile_detector_lite_pattern_wrapper(void)
     }
     struct module_state *st = GETSTATE(module);
 
-    st->error = PyErr_NewException("_fiftyone_degrees_mobile_detector_lite_pattern_wrapper.Error", NULL, NULL);
+    st->error = PyErr_NewException("_fiftyone_degrees_mobile_detector_v3_wrapper.Error", NULL, NULL);
     if (st->error == NULL) {
         Py_DECREF(module);
         INITERROR;
