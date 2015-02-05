@@ -80,7 +80,7 @@ setup(
             ],
         ),
     ],
-    url='http://51degrees.mobi',
+    url='http://51degrees.com',
     description='51Degrees Mobile Detector (Lite C Pattern Wrapper).',
     long_description=__doc__,
     license='MPL2',
