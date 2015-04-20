@@ -20,8 +20,8 @@ struct module_state {
 static struct module_state _state;
 #endif
 
-static DataSet dataSet;
-static Workset *ws;
+static fiftyoneDegreesDataSet dataSet;
+static fiftyoneDegreesWorkset *ws;
 
 static PyObject *py_init(PyObject *self, PyObject *args)
 {
@@ -41,10 +41,10 @@ static PyObject *py_init(PyObject *self, PyObject *args)
 	struct stat   buffer;   
   	if (stat (filePath, &buffer) == 0) {
 		// Init matcher.
-		DataSetInitStatus status = initWithPropertyString(filePath, &dataSet, properties);
+		fiftyoneDegreesDataSetInitStatus status = fiftyoneDegreesInitWithPropertyString(filePath, &dataSet, properties);
 		switch (status) {
 			case DATA_SET_INIT_STATUS_SUCCESS:
-				ws = createWorkset(&dataSet);
+				ws = fiftyoneDegreesCreateWorkset(&dataSet);
                 Py_RETURN_NONE;
 			case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 				PyErr_SetString(PyExc_RuntimeError, "Unable to initialise dataset. There was insufficient memory.");
@@ -85,10 +85,10 @@ static PyObject *py_match(PyObject *self, PyObject *args)
 		// Check user agent string length.
 		if (strlen(userAgent) < MAXBUFFER) {
 		    // Match user agent.
-		    match(ws, userAgent);
+		    fiftyoneDegreesMatch(ws, userAgent);
 
 		    // Fetch properties.
-		    if (processDeviceCSV(ws, output, OUTPUT_BUFFER_LENGTH) < 0) {
+		    if (fiftyoneDegreesProcessDeviceCSV(ws, output, OUTPUT_BUFFER_LENGTH) < 0) {
 		        PyErr_SetString(PyExc_RuntimeError, "Failed to process device CSV.");
 		        return NULL;
 		    } else {
