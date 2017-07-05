@@ -1,6 +1,8 @@
 FiftyOneDegrees-Pattern for Python Version 3.1.1.1
 ==================================================
 
+Please note that this repository is no longer actively maintained. Instead, please use the C-Extension found here: <https://github.com/51Degrees/Device-Detection/tree/master/python>.
+
 This is a Python wrapper for 51Degrees Device Detection library.
 
 It requires a recent Pattern database file from 51Degrees.
